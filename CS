@@ -1,0 +1,92 @@
+using System;
+
+class GaussInterpolation
+{
+    // Function to calculate the lower power of 2
+    static double GetLowerPowerOf2(double input)
+    {
+        return Math.Pow(2, Math.Floor(Math.Log(input, 2)));
+    }
+
+    // Function to calculate the upper power of 2
+    static double GetUpperPowerOf2(double input)
+    {
+        return Math.Pow(2, Math.Ceiling(Math.Log(input, 2)));
+    }
+
+    // Function to calculate the coefficient p
+    static double PCal(double p, int n)
+    {
+        double temp = p;
+        for (int i = 1; i < n; i++)
+        {
+            if (i % 2 == 1)
+                temp *= (p - i);
+            else
+                temp *= (p + i);
+        }
+        return temp;
+    }
+
+    // Function to calculate factorial
+    static int Fact(int n)
+    {
+        int f = 1;
+        for (int i = 2; i <= n; i++)
+            f *= i;
+        return f;
+    }
+
+    // Function for Gauss Interpolation
+    static double PerformGaussInterpolation(double[] x, double[][] y, double value)
+    {
+        int n = x.Length;
+        // Generating Gauss's triangle
+        for (int i = 1; i < n; i++)
+        {
+            for (int j = 0; j < n - i; j++)
+            {
+                y[j][i] = y[j + 1][i - 1] - y[j][i - 1];
+            }
+        }
+        // Implementing Formula
+        double sum = y[n / 2][0];
+        double p = (value - x[n / 2]) / (x[1] - x[0]);
+        for (int i = 1; i < n; i++)
+        {
+            sum += (PCal(p, i) * y[(n - i) / 2][i]) / Fact(i);
+        }
+        return sum;
+    }
+
+    static void Main()
+    {
+        // Input price
+        double currentPrice = 2931;
+
+        // Calculate lower and upper powers of 2
+        double lowerPower = GetLowerPowerOf2(currentPrice);
+        double upperPower = GetUpperPowerOf2(currentPrice);
+
+        Console.WriteLine($"Lower Power of 2: {lowerPower}");
+        Console.WriteLine($"Upper Power of 2: {upperPower}");
+
+        // Define x and y for interpolation
+        double[] x = { lowerPower, (lowerPower + upperPower) / 2, upperPower };
+        double[][] y = new double[x.Length][];
+        for (int i = 0; i < x.Length; i++)
+        {
+            y[i] = new double[x.Length];
+            y[i][0] = Math.Log(x[i], 2); // Example: y = log2(x)
+        }
+
+        // Interpolate between lower and upper power
+        int steps = 24;
+        for (int i = 0; i < steps; i++)
+        {
+            double value = lowerPower + (upperPower - lowerPower) / (steps - 1) * i;
+            double interpolatedValue = PerformGaussInterpolation(x, y, value);
+            Console.WriteLine($"x = {value:F4}, y = {interpolatedValue:F4}");
+        }
+    }
+}
